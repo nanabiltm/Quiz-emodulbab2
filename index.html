@@ -263,7 +263,7 @@
     
     // Tombol WhatsApp
     const message = `Halo, ini hasil kuiz AI:\n- Benar: ${correctCount}/${totalQuestions}\n- Skor: ${score}/100`;
-    const url = `https://wa.me/085337508031?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/+6285337508031?text=${encodeURIComponent(message)}`;
     const sendBtn = document.getElementById('sendBtn');
     sendBtn.onclick = () => window.open(url, '_blank');
     sendBtn.style.display = 'inline-block';
