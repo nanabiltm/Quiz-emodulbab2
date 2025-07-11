@@ -69,11 +69,11 @@
       border: none;
       border-radius: 4px;
     }
-    button#submitBtn {
-      background-color: #4CAF50; 
+    #quizSubmit {
+      background-color: #4CAF50;
       color: white;
     }
-    button#nextBtn, button#backBtn {
+    #quizNext, #quizBack {
       background-color: #2196F3;
       color: white;
     }
@@ -93,10 +93,17 @@
     /* Result/summary styling */
     #result {
       display: none;
+      max-width: 600px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     #result h3 {
       font-size: 1.2rem;
       color: #333;
+      text-align: center;
     }
     #result p {
       font-size: 1rem;
@@ -148,8 +155,8 @@
     </ul>
     <div class="btn-container">
       <span></span>
-      <button id="submitBtn" onclick="checkAnswer()">Periksa Jawaban</button>
-      <button id="nextBtn" style="display:none;" onclick="nextQuestion()">Lanjut</button>
+      <button id="quizSubmit" onclick="checkAnswer()">Periksa Jawaban</button>
+      <button id="quizNext" style="display:none;" onclick="nextQuestion()">Lanjut</button>
     </div>
     <p class="explanation" id="explanation1" style="display:none;">
       <strong>Penjelasan:</strong> AI adalah cabang ilmu komputer yang fokus membuat mesin dapat “berpikir” dan “belajar” seperti manusia. Oleh karena itu, definisi pada pilihan A adalah jawaban yang paling tepat.
@@ -167,9 +174,9 @@
       <li><label><input type="radio" name="q2" value="D" data-correct="true"> Kurikulum seragam untuk semua siswa tanpa penyesuaian individual.</label></li>
     </ul>
     <div class="btn-container">
-      <button id="backBtn" onclick="prevQuestion()">Kembali</button>
-      <button id="submitBtn" onclick="checkAnswer()">Periksa Jawaban</button>
-      <button id="nextBtn" style="display:none;" onclick="nextQuestion()">Lanjut</button>
+      <button id="quizBack" onclick="prevQuestion()">Kembali</button>
+      <button id="quizSubmit" onclick="checkAnswer()">Periksa Jawaban</button>
+      <button id="quizNext" style="display:none;" onclick="nextQuestion()">Lanjut</button>
     </div>
     <p class="explanation" id="explanation2" style="display:none;">
       <strong>Penjelasan:</strong> Opsi A, B, dan C semuanya merupakan tren AI dalam pendidikan. Kurikulum seragam tanpa penyesuaian (opsi D) bukan tren AI, karena AI justru menyesuaikan materi dengan kebutuhan individu.
@@ -187,12 +194,12 @@
       <li><label><input type="radio" name="q3" value="D"> Tetap relevan dengan perkembangan teknologi dan dunia digital siswa.</label></li>
     </ul>
     <div class="btn-container">
-      <button id="backBtn" onclick="prevQuestion()">Kembali</button>
-      <button id="submitBtn" onclick="checkAnswer()">Periksa Jawaban</button>
-      <button id="nextBtn" style="display:none;" onclick="nextQuestion()">Lihat Hasil</button>
+      <button id="quizBack" onclick="prevQuestion()">Kembali</button>
+      <button id="quizSubmit" onclick="checkAnswer()">Periksa Jawaban</button>
+      <button id="quizNext" style="display:none;" onclick="nextQuestion()">Lihat Hasil</button>
     </div>
     <p class="explanation" id="explanation3" style="display:none;">
-      <strong>Penjelasan:</strong> Opsi A, B, dan D adalah alasan kuat mengapa guru SD perlu memahami AI. AI bukan bertujuan menggantikan guru (opsi C), melainkan mendukung tugas guru.
+      <strong>Penjelasan:</strong> AI bukan bertujuan menggantikan guru (opsi C), melainkan mendukung tugas guru.
     </p>
   </div>
 
@@ -209,8 +216,8 @@
   // --- JavaScript Logic ---
   let currentQuestion = 1;
   const totalQuestions = 3;
-  let correctCount = 0;
-  const answerStatus = [null, null, null, null];
+  // Array to store correct/wrong status for each question
+  const answerStatus = [false, false, false, false];
 
   function checkAnswer() {
     const qDiv = document.getElementById('question' + currentQuestion);
@@ -218,24 +225,26 @@
     if (!selected) { alert('Silakan pilih jawaban terlebih dahulu.'); return; }
     const isCorrect = selected.dataset.correct === "true";
     answerStatus[currentQuestion] = isCorrect;
-    if (isCorrect) {
-      correctCount++;
+    if (!isCorrect) {
+      document.getElementById('explanation' + currentQuestion).style.display = 'block';
+      disableOptions(currentQuestion);
+      qDiv.querySelector('#quizSubmit').style.display = 'none';
+      qDiv.querySelector('#quizNext').style.display = 'inline-block';
+    } else {
       disableOptions(currentQuestion);
       if (currentQuestion < totalQuestions) nextQuestion();
       else showResults();
-    } else {
-      document.getElementById('explanation' + currentQuestion).style.display = 'block';
-      disableOptions(currentQuestion);
-      qDiv.querySelector('#submitBtn').style.display = 'none';
-      qDiv.querySelector('#nextBtn').style.display = 'inline-block';
     }
   }
 
   function nextQuestion() {
     document.getElementById('question' + currentQuestion).classList.remove('active');
     currentQuestion++;
-    if (currentQuestion <= totalQuestions) document.getElementById('question' + currentQuestion).classList.add('active');
-    else showResults();
+    if (currentQuestion <= totalQuestions) {
+      document.getElementById('question' + currentQuestion).classList.add('active');
+    } else {
+      showResults();
+    }
   }
 
   function prevQuestion() {
@@ -249,21 +258,25 @@
   }
 
   function showResults() {
+    // Hide all questions
     document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
+    // Calculate correct count from answerStatus
+    const correctCount = answerStatus.reduce((sum, val) => sum + (val ? 1 : 0), 0);
     const score = Math.round((correctCount / totalQuestions) * 100);
+    // Display results
     document.getElementById('score-text').textContent = `Anda menjawab ${correctCount} dari ${totalQuestions} benar. Skor Anda: ${score}/100.`;
     const topics = ['','Konsep dasar AI','Tren AI dalam pendidikan','Alasan guru mengenal AI'];
-    const sumList = document.getElementById('summary'); sumList.innerHTML = '';
-    for (let i=1; i<=totalQuestions; i++) {
+    const summaryList = document.getElementById('summary');
+    summaryList.innerHTML = '';
+    for (let i = 1; i <= totalQuestions; i++) {
       const li = document.createElement('li');
       li.textContent = `Soal ${i} (${topics[i]}): ${answerStatus[i] ? 'Benar' : 'Salah'}`;
-      sumList.appendChild(li);
+      summaryList.appendChild(li);
     }
     document.getElementById('result').style.display = 'block';
-    
-    // Tombol WhatsApp
+    // WhatsApp button
     const message = `Halo, ini hasil kuiz AI:\n- Benar: ${correctCount}/${totalQuestions}\n- Skor: ${score}/100`;
-    const url = `https://wa.me/+6285337508031?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/085337508031?text=${encodeURIComponent(message)}`;
     const sendBtn = document.getElementById('sendBtn');
     sendBtn.onclick = () => window.open(url, '_blank');
     sendBtn.style.display = 'inline-block';
